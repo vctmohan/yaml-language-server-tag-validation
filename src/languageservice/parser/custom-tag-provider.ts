@@ -26,7 +26,7 @@ class CommonTagImpl {
     if (isSeq(value) && this.type === 'sequence') {
       return value;
     }
-    if (typeof value === 'string' && this.type === 'scalar') {
+    if (typeof value === 'string' && (this.type === 'scalar' || this.type === 'scalaruri')) {
       return value;
     }
   }

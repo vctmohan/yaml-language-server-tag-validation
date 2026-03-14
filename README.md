@@ -52,7 +52,7 @@ The following settings are supported:
 - `[yaml].editor.formatOnType`: Enable/disable on type indent and auto formatting array
 - `yaml.disableDefaultProperties`: Disable adding not required properties with default values into completion text
 - `yaml.suggest.parentSkeletonSelectedFirst`: If true, the user must select some parent skeleton first before autocompletion starts to suggest the rest of the properties. When yaml object is not empty, autocompletion ignores this setting and returns all properties and skeletons.
-- `yaml.style.flowMapping` : Forbids flow style mappings if set to `forbid` 
+- `yaml.style.flowMapping` : Forbids flow style mappings if set to `forbid`
 - `yaml.style.flowSequence` : Forbids flow style sequences if set to `forbid`
 - `yaml.keyOrdering` : Enforces alphabetical ordering of keys in mappings when set to `true`. Default is `false`
 
@@ -96,6 +96,20 @@ In order to use the custom tags in your YAML file you need to first specify the 
 ```
 
 The !Scalar-example would map to a scalar custom tag, the !Seq-example would map to a sequence custom tag, the !Mapping-example would map to a mapping custom tag.
+
+###### ScalarURI custom tag type (fork addition)
+
+This fork adds a `scalaruri` tag type that enables JSON Schema validation to enforce the presence of custom tags. This allows the editor to catch missing or incorrect tags as the user types -- for example, writing `variables: variables.yaml` instead of `variables: !include variables.yaml` immediately shows an error, rather than failing silently until runtime. Tags declared as `scalaruri` are transformed into a URI-like format (e.g., `!include file.yaml` becomes `tag+include://file.yaml`) during validation only, allowing schemas to use `pattern` to reject plain strings where a tag is required.
+
+```yaml
+"yaml.customTags": [
+    "!include scalaruri",
+    "!module scalaruri"
+    "!var scalaruri"
+]
+```
+
+See [ScalarURI Custom Tags](docs/scalaruri-custom-tags.md) for the full explanation, schema authoring guide, and examples.
 
 We can then use the newly defined custom tags inside our YAML file:
 

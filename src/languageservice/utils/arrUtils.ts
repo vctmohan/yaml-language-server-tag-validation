@@ -56,7 +56,7 @@ export function matchOffsetToDocument(offset: number, jsonDocuments: YAMLDocumen
 }
 
 export function filterInvalidCustomTags(customTags: string[]): string[] {
-  const validCustomTags = ['mapping', 'scalar', 'sequence'];
+  const validCustomTags = ['mapping', 'scalar', 'sequence', 'scalaruri'];
 
   if (!customTags) {
     return [];

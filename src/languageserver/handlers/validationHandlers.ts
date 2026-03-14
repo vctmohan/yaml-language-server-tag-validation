@@ -9,6 +9,32 @@ import { isKubernetesAssociatedDocument } from '../../languageservice/parser/isK
 import { removeDuplicatesObj } from '../../languageservice/utils/arrUtils';
 import { LanguageService } from '../../languageservice/yamlLanguageService';
 import { SettingsState } from '../../yamlSettings';
+/**
+ * Extracts tag names from custom tags that have the 'scalaruri' type.
+ * E.g. ['!include scalaruri', '!var scalaruri', '!foo scalar'] returns ['include', 'var']
+ */
+function getScalarUriTagNames(customTags: string[]): string[] {
+  if (!customTags) return [];
+  return customTags
+    .filter((tag) => {
+      const parts = tag.split(' ');
+      return parts[1] && parts[1].toLowerCase() === 'scalaruri';
+    })
+    .map((tag) => tag.split(' ')[0].replace(/^!/, ''));
+}
+
+/**
+ * Transforms custom-tagged scalars in YAML text using regex replacement.
+ * Converts e.g. `!include foo.yaml` to `tag+include://foo.yaml`.
+ * Only applies to tags defined with the 'scalaruri' type.
+ * Uses in-place string replacement to preserve line/column positions.
+ */
+function transformCustomTaggedScalars(yamlText: string, customTags: string[]): string {
+  const tagNames = getScalarUriTagNames(customTags);
+  if (tagNames.length === 0) return yamlText;
+  const pattern = new RegExp(`!(${tagNames.join('|')})\\s+`, 'g');
+  return yamlText.replace(pattern, (_, tagName) => `tag+${tagName}://`);
+}
 
 export class ValidationHandler {
   private languageService: LanguageService;
@@ -59,8 +85,17 @@ export class ValidationHandler {
         return [];
       }
 
+      // Transform custom tags for validation only
+      const transformedText = transformCustomTaggedScalars(textDocument.getText(), this.yamlSettings.customTags);
+      const transformedDocument = TextDocument.create(
+        textDocument.uri,
+        textDocument.languageId,
+        textDocument.version,
+        transformedText
+      );
+
       return this.languageService
-        .doValidation(textDocument, isKubernetesAssociatedDocument(textDocument, this.yamlSettings.specificValidatorPaths))
+        .doValidation(transformedDocument, isKubernetesAssociatedDocument(transformedDocument, this.yamlSettings.specificValidatorPaths))
         .then((diagnosticResults) => {
           const diagnostics: Diagnostic[] = [];
           for (const diagnosticItem of diagnosticResults) {
@@ -73,7 +108,7 @@ export class ValidationHandler {
 
           const removeDuplicatesDiagnostics = removeDuplicatesObj(diagnostics);
           this.connection.sendDiagnostics({
-            uri: textDocument.uri,
+            uri: transformedDocument.uri,
             diagnostics: removeDuplicatesDiagnostics,
           });
           return removeDuplicatesDiagnostics;
