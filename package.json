@@ -14,7 +14,7 @@
     }
   ],
   "bin": {
-    "yaml-language-server": "bin/yaml-language-server"
+    "yaml-language-server-tag-validation": "bin/yaml-language-server"
   },
   "main": "./out/server/src/index.js",
   "l10n": "./l10n",
@@ -22,10 +22,17 @@
     "yaml",
     "LSP"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/redhat-developer/yaml-language-server.git"
+    "url": "git+https://github.com/vcollab/yaml-language-server-custom-tags.git"
   },
+  "bugs": {
+    "url": "https://github.com/vcollab/yaml-language-server-custom-tags/issues"
+  },
+  "homepage": "https://github.com/vcollab/yaml-language-server-custom-tags#readme",
   "dependencies": {
     "@vscode/l10n": "^0.0.18",
     "ajv": "^8.17.1",
